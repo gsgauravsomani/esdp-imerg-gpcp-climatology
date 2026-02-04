@@ -1,7 +1,12 @@
+# Data artifacts (large, generated, and source files)
 data/raw/
 data/processed/
+
+# Common gridded-data formats
 *.nc
 *.h5
 *.hdf5
+
+# Python / notebook cache
 __pycache__/
 .ipynb_checkpoints/
