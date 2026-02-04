@@ -180,3 +180,53 @@ Plots:
 - `plots/area_mean_timeseries.png`
 - `plots/rmse_map_imerg_vs_gpcp.png`
 - `plots/jjas_bias_imerg_minus_gpcp.png`
+
+## 12) Results Summary (from sanity-check report)
+
+The file `data/processed/regrid_sanity_check_report.json` stores quantitative comparison metrics after alignment on common grid/time.
+
+### Grid/time consistency
+- IMERG aligned shape: `[36, 6, 9]`
+- GPCP aligned shape: `[36, 6, 9]`
+- Common time steps: `36`
+- Same latitude grid: `true`
+- Same longitude grid: `true`
+
+### Value checks
+- IMERG range: `0.0` to `40.9440` mm/day, mean `2.4556` mm/day, NaNs `0`
+- GPCP range: `0.0` to `22.5006` mm/day, mean `2.4666` mm/day, NaNs `0`
+
+### Area-mean monthly metrics (IMERG vs GPCP)
+- Bias (IMERG - GPCP): `-0.010957` mm/day
+- MAE: `0.112487` mm/day
+- RMSE: `0.169509` mm/day
+- Pearson correlation: `0.997642`
+
+Interpretation: the regional monthly cycle agrees very strongly (high correlation), with very small mean bias and low RMSE at area-mean level.
+
+## 13) Plot Results
+
+### Mean precipitation maps (2019-2021)
+Shows long-term spatial pattern consistency between IMERG and GPCP after regridding.
+
+![Mean precipitation maps](plots/mean_precip_imerg_vs_gpcp.png)
+
+### Mean bias map (IMERG - GPCP)
+Shows where IMERG is systematically wetter (positive) or drier (negative) than GPCP.
+
+![Mean bias map](plots/mean_bias_imerg_minus_gpcp.png)
+
+### Area-averaged monthly time series
+Shows temporal agreement of seasonal cycle over Northern India.
+
+![Area-mean time series](plots/area_mean_timeseries.png)
+
+### RMSE map
+Shows grid-cell-wise magnitude of disagreement through time (always non-negative).
+
+![RMSE map](plots/rmse_map_imerg_vs_gpcp.png)
+
+### JJAS bias map
+Monsoon-season (June-September) bias pattern between IMERG and GPCP.
+
+![JJAS bias map](plots/jjas_bias_imerg_minus_gpcp.png)
