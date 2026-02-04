@@ -192,6 +192,80 @@ def plot_area_mean_timeseries(imerg, gpcp):
     print(f"Saved: {out_file}")
 
 
+def plot_rmse_map(imerg, gpcp, india_geom):
+    rmse = np.sqrt(((imerg - gpcp) ** 2).mean("time"))
+    vmax = float(np.nanpercentile(rmse.values, 98))
+    vmax = max(vmax, 0.5)
+
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=1,
+        figsize=(9.2, 5.4),
+        subplot_kw={"projection": ccrs.PlateCarree()},
+        constrained_layout=True,
+    )
+    _style_map_axis(ax, india_geom)
+
+    mappable = ax.pcolormesh(
+        rmse["longitude"],
+        rmse["latitude"],
+        rmse,
+        transform=ccrs.PlateCarree(),
+        cmap="YlOrRd",
+        vmin=0.0,
+        vmax=vmax,
+        shading="auto",
+    )
+    ax.set_title("RMSE Map: IMERG vs GPCP (2019-2021)", fontsize=11, weight="semibold")
+
+    cbar = fig.colorbar(mappable, ax=ax, orientation="vertical", shrink=0.9, pad=0.03)
+    cbar.set_label("RMSE (mm/day)", fontsize=10)
+    cbar.ax.tick_params(labelsize=9)
+
+    out_file = PLOTS_DIR / "rmse_map_imerg_vs_gpcp.png"
+    fig.savefig(out_file, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {out_file}")
+
+
+def plot_jjas_bias_map(imerg, gpcp, india_geom):
+    jjas_mask = imerg["time"].dt.month.isin([6, 7, 8, 9])
+    bias_jjas = (imerg.where(jjas_mask, drop=True) - gpcp.where(jjas_mask, drop=True)).mean("time")
+
+    vmax = float(np.nanpercentile(np.abs(bias_jjas.values), 98))
+    vmax = max(vmax, 0.5)
+    norm = TwoSlopeNorm(vmin=-vmax, vcenter=0.0, vmax=vmax)
+
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=1,
+        figsize=(9.2, 5.4),
+        subplot_kw={"projection": ccrs.PlateCarree()},
+        constrained_layout=True,
+    )
+    _style_map_axis(ax, india_geom)
+
+    mappable = ax.pcolormesh(
+        bias_jjas["longitude"],
+        bias_jjas["latitude"],
+        bias_jjas,
+        transform=ccrs.PlateCarree(),
+        cmap="RdBu_r",
+        norm=norm,
+        shading="auto",
+    )
+    ax.set_title("JJAS Bias: IMERG - GPCP (2019-2021)", fontsize=11, weight="semibold")
+
+    cbar = fig.colorbar(mappable, ax=ax, orientation="vertical", shrink=0.9, pad=0.03)
+    cbar.set_label("Bias (mm/day)", fontsize=10)
+    cbar.ax.tick_params(labelsize=9)
+
+    out_file = PLOTS_DIR / "jjas_bias_imerg_minus_gpcp.png"
+    fig.savefig(out_file, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {out_file}")
+
+
 def main():
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
     imerg, gpcp = _load_data()
@@ -200,7 +274,9 @@ def main():
     plot_mean_maps(imerg, gpcp, india_geom)
     plot_bias_map(imerg, gpcp, india_geom)
     plot_area_mean_timeseries(imerg, gpcp)
-    print("Done: generated 3 plots in ./plots")
+    plot_rmse_map(imerg, gpcp, india_geom)
+    plot_jjas_bias_map(imerg, gpcp, india_geom)
+    print("Done: generated 5 plots in ./plots")
 
 
 if __name__ == "__main__":
