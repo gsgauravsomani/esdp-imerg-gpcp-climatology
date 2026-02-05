@@ -2,7 +2,21 @@
 
 ESDP final project comparing two monthly precipitation products over Northern India (2019-2021), with a reproducible preprocessing, regridding, evaluation, and plotting workflow.
 
-## 1) Project Scope
+## 1) Project Motivation and Scope
+
+The motivation for this project comes from prior experience working with precipitation datasets. That work raised a broader question of how precipitation estimates translate across regions with very different climatological regimes. IMERG was chosen because it is a widely used, high-resolution satellite-based precipitation product, and this project explores its usefulness at a climatological scale in a familiar region.
+
+Just like IMERG, GPCP is a global precipitation datasets but relies on different observational strategies, with IMERG being satellite-dominated and GPCP incorporating rain-gauge information. They form a natural pair for intercomparison. The goal was not to assume agreement, but to examine whether two fundamentally different approaches to measuring precipitation yield comparable results when aggregated spatially and temporally.
+
+No strong prior assumptions were made about the level of agreement. In fact, the expectation was that the datasets might differ substantially. The results therefore served as a learning outcome in themselves, correcting that initial intuition.
+
+**Region selection**
+
+Northern India was selected both for familiarity and for its strong monsoon-driven precipitation regime. Familiarity with the region allows clearer physical interpretation of spatial and seasonal precipitation patterns, while the pronounced monsoon signal provides a meaningful test case for comparing precipitation products derived from different observational approaches.
+
+**Time period selection**
+
+The analysis period was limited to 2019–2021 to balance scientific relevance with computational feasibility. Initial tests with longer time spans revealed disk I/O and memory constraints during file concatenation and processing of IMERG data. While these issues could be addressed through batching or parallelization strategies, the project scope prioritized a fully reproducible end-to-end workflow over extended temporal coverage.
 
 - Region: 20N to 35N, 68E to 90E (Northern India bounding box)
 - Period: January 2019 to December 2021 (36 monthly time steps)
@@ -17,6 +31,7 @@ ESDP final project comparing two monthly precipitation products over Northern In
 - Raw format: HDF5 (group-based)
 - Variable used from `Grid` group: `precipitation`
 - Native unit used in workflow: mm/hr (converted later)
+- Spatial resolution: 0.1° × 0.1°
 
 ### GPCP Monthly
 - Product family: GPCP Monthly Climate Data Record (v2.3 style file naming)
@@ -24,6 +39,7 @@ ESDP final project comparing two monthly precipitation products over Northern In
 - Raw format: NetCDF
 - Variable used: `precip`
 - Working unit in files: mm/day
+- Spatial resolution: 2.5° × 2.5°
 
 ## 3) What Was Difficult in Raw Data
 
@@ -72,8 +88,11 @@ Run order is controlled by `src/run_pipeline.py`:
 
 ## 5) Regridding: Why and What It Means
 
-IMERG is finer-resolution; GPCP is coarser (2.5 degree grid).  
-For direct grid-cell comparison, both datasets must share the same grid.
+IMERG has a much finer native spatial resolution than GPCP. For direct grid-cell-wise comparison, both datasets must share the same spatial grid. In this project, IMERG is regridded onto the coarser GPCP grid.
+
+Linear interpolation via `xarray.interp` was used for this purpose. This approach smooths sub-grid spatial variability and does not conserve fine-scale precipitation totals, but it is appropriate for monthly, regional-scale intercomparison where large-scale patterns and seasonal variability are of primary interest.
+
+Conservative regridding using xESMF was considered. However, platform-specific dependency constraints on a Windows-based environment prevented reliable installation within the project timeframe. Given the monthly temporal resolution and the emphasis on reproducible workflows, linear interpolation was selected as a robust and portable solution.
 
 So the project regrids IMERG to GPCP coordinates:
 - Input IMERG field: `precip_mm_day`
@@ -111,6 +130,10 @@ Sanity checks ensure:
 - Quantified agreement through bias/MAE/RMSE/correlation
 
 This is the quality gate before interpretation and reporting.
+
+Machine-readable sanity-check report:
+
+- `data/processed/regrid_sanity_check_report.json`
 
 ## 8) Reproducibility and Scalability
 
