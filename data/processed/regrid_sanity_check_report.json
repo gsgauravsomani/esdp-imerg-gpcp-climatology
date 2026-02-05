@@ -1,0 +1,73 @@
+{
+  "files": {
+    "imerg_regridded": "D:\\esdp\\ESDP-final-project\\data\\processed\\imerg_north_india_on_gpcp_grid.nc",
+    "gpcp_subset": "D:\\esdp\\ESDP-final-project\\data\\processed\\gpcp_north_india.nc"
+  },
+  "shape_checks": {
+    "imerg_shape": [
+      36,
+      6,
+      9
+    ],
+    "gpcp_shape": [
+      36,
+      6,
+      9
+    ],
+    "common_time_steps": 36,
+    "same_latitude_grid": true,
+    "same_longitude_grid": true
+  },
+  "value_checks": {
+    "imerg": {
+      "min_mm_day": 0.0,
+      "max_mm_day": 40.944000244140625,
+      "mean_mm_day": 2.455617666244507,
+      "nan_count": 0
+    },
+    "gpcp": {
+      "min_mm_day": 0.0,
+      "max_mm_day": 22.50056266784668,
+      "mean_mm_day": 2.4665749073028564,
+      "nan_count": 0
+    }
+  },
+  "monthly_spatial_mean_metrics": {
+    "bias_mm_day_imerg_minus_gpcp": -0.010957280173897743,
+    "mae_mm_day": 0.11248739808797836,
+    "rmse_mm_day": 0.16950879991054535,
+    "pearson_r": 0.997641868385759
+  },
+  "first_5_months_area_mean": [
+    {
+      "time": "2019-01-01",
+      "imerg_mean_mm_day": 0.7062221765518188,
+      "gpcp_mean_mm_day": 0.7194383144378662,
+      "diff_mm_day": -0.013216137886047363
+    },
+    {
+      "time": "2019-02-01",
+      "imerg_mean_mm_day": 1.2360000610351562,
+      "gpcp_mean_mm_day": 1.4530985355377197,
+      "diff_mm_day": -0.21709847450256348
+    },
+    {
+      "time": "2019-03-01",
+      "imerg_mean_mm_day": 0.5964444279670715,
+      "gpcp_mean_mm_day": 0.6523573994636536,
+      "diff_mm_day": -0.05591297149658203
+    },
+    {
+      "time": "2019-04-01",
+      "imerg_mean_mm_day": 0.8311111330986023,
+      "gpcp_mean_mm_day": 0.9943341016769409,
+      "diff_mm_day": -0.16322296857833862
+    },
+    {
+      "time": "2019-05-01",
+      "imerg_mean_mm_day": 0.9422222375869751,
+      "gpcp_mean_mm_day": 1.006041407585144,
+      "diff_mm_day": -0.06381916999816895
+    }
+  ]
+}
