@@ -4,7 +4,7 @@ ESDP final project comparing two monthly precipitation products over Northern In
 
 ## 1) Project Motivation and Scope
 
-The motivation for this project comes from prior experience working with precipitation datasets. That work raised a broader question of how precipitation estimates translate across regions with very different climatological regimes. IMERG was chosen because it is a widely used, high-resolution satellite-based precipitation product, and this project explores its usefulness at a climatological scale in a familiar region.
+The motivation for this project comes from prior experience working with precipitation datasets. I was curious about how precipitation estimates translate across regions with very different climatological regimes. IMERG was chosen because it is a widely used, high-resolution satellite-based precipitation product, and this project explores its usefulness at a climatological scale in a familiar region.
 
 Just like IMERG, GPCP is a global precipitation datasets but relies on different observational strategies, with IMERG being satellite-dominated and GPCP incorporating rain-gauge information. They form a natural pair for intercomparison. The goal was not to assume agreement, but to examine whether two fundamentally different approaches to measuring precipitation yield comparable results when aggregated spatially and temporally.
 
@@ -55,32 +55,78 @@ The pipeline handles all of these explicitly so the comparison is valid and repe
 
 ## 4) Processing Pipeline (What Happens Internally)
 
+A quick look into the project structure:
+```text
+.
+├─ README.md
+├─ requirements.txt
+├─ data/
+│  ├─ raw/
+│  │  ├─ imerg_monthly/
+│  │  └─ gpcp_monthly/
+│  └─ processed/
+│     ├─ gpcp_north_india.nc
+│     ├─ imerg_north_india.nc
+│     ├─ imerg_north_india_mmday.nc
+│     ├─ imerg_north_india_on_gpcp_grid.nc
+│     ├─ precip.mon.mean.nc
+│     └─ regrid_sanity_check_report.json
+├─ notebooks/
+│  └─ Exploratory-Notebook.ipynb
+├─ plots/
+│  ├─ area_mean_timeseries.png
+│  ├─ jjas_bias_imerg_minus_gpcp.png
+│  ├─ mean_bias_imerg_minus_gpcp.png
+│  ├─ mean_precip_imerg_vs_gpcp.png
+│  └─ rmse_map_imerg_vs_gpcp.png
+├─ src/
+│  ├─ __init__.py
+│  ├─ concatenate_imerg.py
+│  ├─ config.py
+│  ├─ download_gpcp.py
+│  ├─ download_imerg.py
+│  ├─ extract_gpcp.py
+│  ├─ make_plots.py
+│  ├─ regrid_imerg_to_gpcp.py
+│  ├─ run_pipeline.py
+│  ├─ sanity_check_regrid.py
+│  └─ unit_convert_imerg.py
+└─ tests/
+   └─ test_pipeline_smoke.py
+```
 Run order is controlled by `src/run_pipeline.py`:
+1. `src/download_imerg.py`
+   - Checks `data/raw/imerg_monthly/` for IMERG files
+   - Dry-run only; does not download unless called with `download=True` and URL list
 
-1. `src/concatenate_imerg.py`
+2. `src/download_gpcp.py`
+   - Checks `data/raw/gpcp_monthly/` for GPCP files
+   - Dry-run only; does not download unless called with `download=True` and URL list
+
+3. `src/concatenate_imerg.py`
    - Opens all monthly IMERG files from `data/raw/imerg_monthly/`
    - Reads `Grid/precipitation`
    - Applies time and domain subset from `src/config.py`
    - Saves `data/processed/imerg_north_india.nc` as `precip_mm_hr`
 
-2. `src/unit_convert_imerg.py`
+4. `src/unit_convert_imerg.py`
    - Converts `precip_mm_hr * 24.0` to `precip_mm_day`
    - Saves `data/processed/imerg_north_india_mmday.nc`
 
-3. `src/extract_gpcp.py`
+5. `src/extract_gpcp.py`
    - Opens all monthly GPCP files from `data/raw/gpcp_monthly/`
    - Reads `precip`
    - Applies same time/domain subset
    - Drops optional bounds coordinates if present
    - Saves `data/processed/gpcp_north_india.nc` as `precip_mm_day`
 
-4. `src/regrid_imerg_to_gpcp.py`
+6. `src/regrid_imerg_to_gpcp.py`
    - Renames IMERG dimensions to match GPCP
    - Converts IMERG longitude to `0..360` if needed
    - Interpolates IMERG onto GPCP grid using `xarray.interp(..., method="linear")`
    - Saves `data/processed/imerg_north_india_on_gpcp_grid.nc` as `imerg_precip_mm_day`
 
-5. `src/sanity_check_regrid.py`
+7. `src/sanity_check_regrid.py`
    - Aligns IMERG and GPCP on common coords/time
    - Checks shape, grid equality, NaN count, value range
    - Computes monthly area-mean bias, MAE, RMSE, and Pearson correlation
@@ -164,26 +210,17 @@ Changing config and rerunning pipeline regenerates all downstream datasets consi
 ```bash
 pip install -r requirements.txt
 ```
-
-### Step B: Prepare raw data
-1. IMERG monthly files (notebook-guided download) -> `data/raw/imerg_monthly/`
-2. GPCP monthly files (manual download) -> `data/raw/gpcp_monthly/`
-
-Expected filename patterns:
-- IMERG: `3B-MO.MS.MRG.3IMERG.*.HDF5`
-- GPCP: `gpcp_v02r03_monthly_*.nc`
-
-### Step C: Run processing pipeline
+### Step B: Run processing pipeline
 ```bash
 python -m src.run_pipeline
 ```
 
-### Step D: Generate plots
+### Step C: Generate plots
 ```bash
 python -m src.make_plots
 ```
 
-### Step E: Optional smoke tests
+### Step D: Optional smoke tests
 ```bash
 python -m pytest -q
 ```
@@ -253,3 +290,12 @@ Shows grid-cell-wise magnitude of disagreement through time (always non-negative
 Monsoon-season (June-September) bias pattern between IMERG and GPCP.
 
 ![JJAS bias map](plots/jjas_bias_imerg_minus_gpcp.png)
+## References
+**GPCP**:Global Precipitation Climatology Project (GPCP) Monthly Analysis Product data provided by the NOAA PSL, Boulder, Colorado, USA, from their website at https://psl.noaa.gov
+
+**IMERG**: https://gpm1.gesdisc.eosdis.nasa.gov/data/GPM_L3/GPM_3IMERGM.07/
+
+## License
+
+This project is released under the MIT License. See the `LICENSE` file for details.
+
